@@ -1,19 +1,39 @@
 body {
     font :14px  arial;
-    text-align : center;
     background : #36A;
 }
+
 h2 {
     color : white;
 }
+
 canvas {
-    border : 10px white solid;
     cursor : pointer;
+    width: 100%;
+    height: 100%;
 }
+
 a {
   color : #F93;
 }
+
 .mute {
     cursor : pointer;
     display: initial;   
+}
+
+.containerSite {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.containerVideo {
+    align-items: center;
+    display: flex;
+    width: 25%;
+}
+
+.containerCanvas {
+    width: 70%;
 }

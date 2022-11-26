@@ -6,15 +6,24 @@
         <title>MeTube</title>
     </head>
     <body>
-        <canvas id="myCanvas" width = "532" height ="300" ></canvas>
-        <br>
-        <h3>
-            <div id = "playPause">Loading content.</div>
-        </h3>
-        <div class="mute"></div>
-        <br>
-        <div style="font-size:small">Attribution in the leading credits.</div>
-        <br>
+        <div class="containerSite">
+            <div class="containerCanvas">
+                <canvas id="myCanvas"></canvas>
+            </div>
+            <div class="containerVideo">
+                <div>
+                    <h3>Playlist video</h3>
+                </div>
+            </div>
+            <br>
+            <h3>
+                <div id = "playPause">Loading content.</div>
+            </h3>
+            <div class="mute"></div>
+            <br>
+            <div style="font-size:small">Attribution in the leading credits.</div>
+            <br>
+        </div>
 
         <script>
             var mediaSource = [
@@ -47,7 +56,7 @@
                 document.body.innerHTML += "<br><a href='https://tools.google.com/dlpage/webmmf/'> Download IE9+ WebM support</a> from tools.google.com<br> this includes Edge and Windows 10";
                 
             }
-            video.oncanplay = readyToPlayVideo; // set the event to the play function that 
+            video.oncanplay = readyToPlayVideo; // set the event to the play function that
                                             // can be found below
             function readyToPlayVideo(event){ // this is a referance to the video
                 // the video may not match the canvas size so find a scale to fit
@@ -75,11 +84,11 @@
                     var left = canvas.width / 2 - (vidW /2 ) * scale;
                     // now just draw the video the correct size
                     ctx.drawImage(videoContainer.video, left, top, vidW * scale, vidH * scale);
-                    if(videoContainer.video.paused){ // if not playing show the paused screen 
+                    if(videoContainer.video.paused){ // if not playing show the paused screen
                         drawPayIcon();
                     }
                 }
-                // all done for display 
+                // all done for display
                 // request the next frame in 1/60th of a second
                 requestAnimationFrame(updateCanvas);
             }
@@ -98,7 +107,7 @@
                 ctx.closePath();
                 ctx.fill();
                 ctx.globalAlpha = 1; // restore alpha
-            }    
+            }
 
             function playPauseClick(){
                 if(videoContainer !== undefined && videoContainer.ready){
@@ -116,12 +125,10 @@
                 }else{
                     document.querySelector(".mute").textContent= "Sound on";
                 }
-
-
             }
             // register the event
             canvas.addEventListener("click",playPauseClick);
-            document.querySelector(".mute").addEventListener("click",videoMute)
+            document.querySelector(".mute").addEventListener("click",videoMute);
         </script>
     </body>
 </html>
