@@ -23,17 +23,69 @@ a {
 }
 
 .containerSite {
-    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.containerCanvas {
+    background-color: black;
+    width: 70%;
+    height: 50%;
+}
+
+.containerVideo {
+    width: 29%;
+    margin-left: 1%;
+    overflow-y: auto;
+    height: 50vh;
+}
+
+.listElement {
+    height: 84px;
     display: flex;
     flex-wrap: wrap;
 }
 
-.containerVideo {
-    align-items: center;
+.listImgText {
     display: flex;
-    width: 25%;
+    align-items: center;
+    width: 80%;
+    cursor: pointer;
 }
 
-.containerCanvas {
-    width: 70%;
+.listDrag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 10%;
+    font-size: 35px;
+    text-align: center;
+    cursor: grab;
+}
+
+.listDeleteVideo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: white;
+    border: none;
+    text-align: center;
+    font-size: 15px;
+    width: 10%;
+    opacity: 0.6;
+    transition: 0.3s;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+  
+  .listDeleteVideo:hover {
+    background-color: rgb(32, 66, 110);
+    opacity: 1;
+}
+
+.active {
+    background-color: rgb(66, 136, 228);
 }
