@@ -5,7 +5,7 @@
         "Media/SigmaMale.mp4",
         "Media/ZyzzMotivation.mp4"];
 
-    var muted = true;
+    var muted = true;                                   // variabila care retine daca sunetul este redat sau nu
     var videoContainer;                                 // obiect care contine elementul video si informatiile asociate
 
     var canvas = document.getElementById("myCanvas");   // preia elementul canvas din pagina
@@ -29,9 +29,6 @@
         document.body.innerHTML += "Users of IE9+ , the browser does not support WebM videos used by this demo";
         document.body.innerHTML += "<br><a href='https://tools.google.com/dlpage/webmmf/'> Download IE9+ WebM support</a> from tools.google.com<br> this includes Edge and Windows 10";
     }
-
-    desenarePlaylist();                                                         // desenare lista de videouri vizualizabile
-    document.getElementsByClassName("listElement")[0].classList.add("active");  // evidentiere video curent
 
     video.oncanplay = readyToPlayVideo; // set the event to the play function that
                         // can be found below
@@ -63,24 +60,102 @@
             // now just draw the video the correct size
             ctx.drawImage(videoContainer.video, left, top, vidW * scale, vidH * scale);
 
-            if(videoContainer.video.paused){ // if not playing show the paused screen
+            if(videoContainer.video.paused) { // if not playing show the paused screen
                 drawCenterIcon();
+                drawPlayIcon();                 //deseneaza controlul de play
             }
+            else {
+                drawPauseIcon();                //deseneaza controlul de pause
+            }
+
+            if(muted != true) {
+                drawMuteIcon();                 //deseneaza controlul de mute
+            }else {
+                drawUnmuteIcon();               //deseneaza controlul de unmute
+            }
+
+            drawPreviousIcon();                 //deseneaza controlul de previous
+            drawNextIcon();                     //deseneaza controlul de next
+            drawProgressBar();                  //deseneaza bara de progres
         }
         // all done for display
         // request the next frame in 1/60th of a second
         requestAnimationFrame(updateCanvas);
     }
 
-    function playPauseClick() {
+    function playPauseClick(e) {
+
         if(videoContainer !== undefined && videoContainer.ready) {
-            if(videoContainer.video.paused) {                                 
-                videoContainer.video.play();
-            }else {
-                videoContainer.video.pause();
+
+            // lista de obiecte care contin delimitarile zonei de controale
+            var canvasH = canvas.getBoundingClientRect().height;
+            var canvasW = canvas.getBoundingClientRect().width;
+            var pozControale = [
+                {x1:20, x2:35, y1:canvasH - 25, y2:canvasH - 5},            // prev
+                {x1:60, x2:75, y1:canvasH - 25, y2:canvasH - 5},            // play/pause
+                {x1:100, x2:115, y1:canvasH - 25, y2:canvasH - 5},          // next
+                {x1:140, x2:160, y1:canvasH - 25, y2:canvasH - 5},          // sound
+                {x1:0, x2:canvasW, y1:canvasH - 33, y2:canvasH - 30},       // progress bar
+                {x1:0, x2:canvasW, y1:0, y2:canvasH - 34}                   // orice de deasupra progress bar
+            ];
+            var ctrl = -1;
+            var mousepos = {x:e.clientX - canvas.getBoundingClientRect().x, y:e.clientY - canvas.getBoundingClientRect().y};
+
+            for(let i = 0; i < pozControale.length; i++) {
+                if(pozControale[i].x1 <= mousepos.x && mousepos.x <= pozControale[i].x2 &&
+                    pozControale[i].y1 <= mousepos.y && mousepos.y <= pozControale[i].y2) {
+
+                    ctrl = i;
+                }
+            }
+
+            switch(ctrl) {
+                case 0: {
+                    index = mediaSource.indexOf(video.src.slice(video.src.indexOf("Media")));
+                    if(index != undefined && index != null) {
+                        if(index != 0) {
+                            changeVideo(index - 1);
+                        }
+                    }
+                    break;
+                }
+                case 1: {
+                    if(videoContainer.video.paused) {                                 
+                        videoContainer.video.play();
+                    }else {
+                        videoContainer.video.pause();
+                    }
+                    break;
+                }
+                case 2: {
+                    index = mediaSource.indexOf(video.src.slice(video.src.indexOf("Media")));
+                    if(index != undefined && index != null) {
+                        if(index < mediaSource.length - 1) {
+                            changeVideo(index + 1);
+                        }
+                        else {
+                            changeVideo(0);
+                        }
+                    }
+                    break;
+                }
+                case 3: {
+                    videoMute();
+                    break;
+                }
+                case 4: {console.log("progress bar"); break;}
+                case 5: {
+                    if(videoContainer.video.paused) {                                 
+                        videoContainer.video.play();
+                    }else {
+                        videoContainer.video.pause();
+                    }
+                    break;
+                }
             }
         }
     }
+
     function videoMute() {
         muted = !muted;
         if(muted) {
@@ -89,9 +164,24 @@
             document.querySelector(".mute").textContent= "Sound on";
         }
     }
+
     // register the event
     canvas.addEventListener("click", playPauseClick);
     document.querySelector(".mute").addEventListener("click", videoMute);
+
+
+    desenarePlaylist(0);                                                         // desenare lista de videouri vizualizabile
+
+    function changeVideo(i) {
+        video.src = mediaSource[i];
+        // evidentiere video curent
+        var listaElemente = document.getElementsByClassName("listElement");         // preluare lista de elemente ce trebuie evidentiate
+
+        for(let j = 0; j < listaElemente.length; j++) {
+            listaElemente[j].classList.remove("active");                    // stergerea clasei care evidentiaza celelalte videouri neselectate
+        }
+        listaElemente[i].classList.add("active");                           // adaugarea clasei care evidentiaza videoul curent
+    }
 
     // functie care adauga un div in divul parinte
     function adaugaDivInDiv(div, text) {
@@ -99,8 +189,9 @@
             "<div class='listDrag'>=</div>" +
             "<div class='listImgText'><p>" + text + "</p></div><button class='listDeleteVideo'>x</button></div>";
     }
+
     // functie care deseneaza playlistul si creaza eventurile pentru toate controalelele
-    function desenarePlaylist() { // creare lista playlist cu videouri vizionabile
+    function desenarePlaylist(index) { // creare lista playlist cu videouri vizionabile
         var playlist = document.getElementById("playlist");
         // golire elemente playlist si adaugare header
         playlist.innerHTML = "<h3>Playlist video</h3>";
@@ -108,38 +199,39 @@
         for(let i = 0; i < mediaSource.length; i++) {       // pentru fiecare video se creaza un div cu videourile din playlist
             adaugaDivInDiv(playlist, mediaSource[i]);    // se apeleaza functia de adaugare div
         }
+
+        if(index != -1)
+            document.getElementsByClassName("listElement")[index].classList.add("active");
+
         // creare contexte video pentru toate divurile din playlist
         var videoContexts = document.getElementsByClassName("listImgText");
-
-        // creare contexte pentru butoanele de delete video pentru toate divurile din playlist
-        var deleteVideoContexts = document.getElementsByClassName("listDeleteVideo");
-
-        // creare contexte pentru butoanele de drag video pentru toate divurile din playlist
-        var dragVideoContexts = document.getElementsByClassName("listDrag");
-
-        
 
         // creare event listener pentru apasarea click pe contextele video
         for(let i = 0; i < videoContexts.length; i++) {
             videoContexts[i].addEventListener('click', () => {
-                video.src = mediaSource[i];
-
-                // evidentiere video curent
-                var listaElemente = document.getElementsByClassName("listElement"); // preluare lista de elemente ce trebuie evidentiate
-                for(let j = 0; j < listaElemente.length; j++) {
-                    listaElemente[j].classList.remove("active");                    // stergerea clasei care evidentiaza celelalte videouri neselectate
-                }
-                listaElemente[i].classList.add("active");                           // adaugarea clasei care evidentiaza videoul curent
+                changeVideo(i);
             });
         }
-        
+
+        // creare contexte pentru butoanele de delete video pentru toate divurile din playlist
+        var deleteVideoContexts = document.getElementsByClassName("listDeleteVideo");
+
         // creare event listener pentru apasarea click pe contextele de delete video
         for(let i = 0; i < deleteVideoContexts.length; i++) {
             deleteVideoContexts[i].addEventListener('click', () => {
                 mediaSource.splice(i, 1);
-                desenarePlaylist();
+                if(i == x)
+                    x = -1;
+                else{
+                    if(x > i)
+                        x--;
+                }
+                desenarePlaylist(x);
             });
         }
+
+        // creare contexte pentru butoanele de drag video pentru toate divurile din playlist
+        var dragVideoContexts = document.getElementsByClassName("listDrag");
     }
 
     // controalele desenate peste canvas
@@ -228,7 +320,7 @@
     function drawNextIcon() {
         ctx.fillStyle = "#DDD";
         ctx.globalAlpha = 0.75;
-        // (100, canvas.height - 25) -> (75, canvas.height - 5)
+        // (100, canvas.height - 25) -> (115, canvas.height - 5)
         var size = 10;
         var marginLeft = 100;
         var marginBottom = 10;
@@ -254,7 +346,7 @@
         ctx.globalAlpha = 0.75;
         // (0, canvas.height - 33) -> (canvas.width, canvas.height - 30)
         var size = 3;
-        var marginBottom = 30;
+        var marginBottom = 35;
     
         ctx.beginPath();
         ctx.moveTo(0, canvas.height - marginBottom);
@@ -263,4 +355,22 @@
         ctx.lineTo(0, canvas.height - marginBottom - size);
         ctx.closePath();
         ctx.fill();
+    }
+
+    function drawMuteIcon() {
+        var mute = document.createElement("img");
+        mute.src = "./Media/Mute.png";
+        size = 20;
+        marginBottom = 10;
+        marginLeft = 140;
+        ctx.drawImage(mute, marginLeft, canvas.height - marginBottom / 2 - size, size, size);
+    }
+
+    function drawUnmuteIcon() {
+        var unmute = document.createElement("img");
+        unmute.src = "./Media/Unmute.png";
+        size = 20;
+        marginBottom = 10;
+        marginLeft = 140;
+        ctx.drawImage(unmute, marginLeft, canvas.height - marginBottom / 2 - size, size, size);
     }
