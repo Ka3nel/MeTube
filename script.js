@@ -14,7 +14,7 @@
     var video = document.createElement("video");        // creare element video
     video.src = mediaSource[0];                         // videoul va incepe sa se incarce
     video.autoPlay = false;                             // asigurare ca videoul nu va incepe sa ruleze automat
-    video.loop = true;                                  // setare care face videoul sa reia de la capat odata cu terminarea acestuia
+    video.loop = false;
     video.muted = muted;
     
     videoContainer = {                                  // containerul videoului
@@ -40,8 +40,6 @@
         videoContainer.ready = true;
         // the video can be played so hand it off to the display function
         requestAnimationFrame(updateCanvas);
-        // add instruction
-        document.querySelector(".mute").textContent = "Mute";
     }
 
     function updateCanvas() {
@@ -88,6 +86,8 @@
         if(videoContainer !== undefined && videoContainer.ready) {
 
             // lista de obiecte care contin delimitarile zonei de controale
+            var canvasX = canvas.getBoundingClientRect().x;
+            var canvasY = canvas.getBoundingClientRect().y;
             var canvasH = canvas.getBoundingClientRect().height;
             var canvasW = canvas.getBoundingClientRect().width;
             var pozControale = [
@@ -98,8 +98,11 @@
                 {x1:0, x2:canvasW, y1:canvasH - 33, y2:canvasH - 30},       // progress bar
                 {x1:0, x2:canvasW, y1:0, y2:canvasH - 34}                   // orice de deasupra progress bar
             ];
+
             var ctrl = -1;
-            var mousepos = {x:e.clientX - canvas.getBoundingClientRect().x, y:e.clientY - canvas.getBoundingClientRect().y};
+            var mousepos = {x:e.clientX - canvasX, y:e.clientY - canvasY};
+
+            DesenarePozControale(pozControale);
 
             for(let i = 0; i < pozControale.length; i++) {
                 if(pozControale[i].x1 <= mousepos.x && mousepos.x <= pozControale[i].x2 &&
@@ -158,24 +161,17 @@
 
     function videoMute() {
         muted = !muted;
-        if(muted) {
-            document.querySelector(".mute").textContent = "Mute";
-        }else {
-            document.querySelector(".mute").textContent= "Sound on";
-        }
     }
 
     // register the event
     canvas.addEventListener("click", playPauseClick);
-    document.querySelector(".mute").addEventListener("click", videoMute);
 
-
-    desenarePlaylist(0);                                                         // desenare lista de videouri vizualizabile
+    desenarePlaylist(0);                                                    // desenare lista de videouri vizualizabile
 
     function changeVideo(i) {
         video.src = mediaSource[i];
         // evidentiere video curent
-        var listaElemente = document.getElementsByClassName("listElement");         // preluare lista de elemente ce trebuie evidentiate
+        var listaElemente = document.getElementsByClassName("listElement"); // preluare lista de elemente ce trebuie evidentiate
 
         for(let j = 0; j < listaElemente.length; j++) {
             listaElemente[j].classList.remove("active");                    // stergerea clasei care evidentiaza celelalte videouri neselectate
@@ -197,7 +193,7 @@
         playlist.innerHTML = "<h3>Playlist video</h3>";
 
         for(let i = 0; i < mediaSource.length; i++) {       // pentru fiecare video se creaza un div cu videourile din playlist
-            adaugaDivInDiv(playlist, mediaSource[i]);    // se apeleaza functia de adaugare div
+            adaugaDivInDiv(playlist, mediaSource[i]);       // se apeleaza functia de adaugare div
         }
 
         if(index != -1)
@@ -220,7 +216,8 @@
         for(let i = 0; i < deleteVideoContexts.length; i++) {
             deleteVideoContexts[i].addEventListener('click', () => {
                 mediaSource.splice(i, 1);
-                if(i == x)
+                let x;
+                if(i == index)
                     x = -1;
                 else{
                     if(x > i)
@@ -232,6 +229,13 @@
 
         // creare contexte pentru butoanele de drag video pentru toate divurile din playlist
         var dragVideoContexts = document.getElementsByClassName("listDrag");
+    }
+
+    function DesenarePozControale(controale) {
+        ctx.fillStyle = "#00F";
+        controale.forEach(c => {
+            ctx.fillRect(c.x1, c.y1, c.x2 - c.x1, c.y2 - c.y1);
+        });
     }
 
     // controalele desenate peste canvas
@@ -260,6 +264,7 @@
         var size = 10;
         var marginLeft = 20;
         var marginBottom = 10;
+
         ctx.beginPath();
         ctx.moveTo(marginLeft, canvas.height - marginBottom + 0.5 * size);
         ctx.lineTo(marginLeft + size / 3, canvas.height - marginBottom + 0.5 * size);
