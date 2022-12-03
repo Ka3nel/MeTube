@@ -1,19 +1,7 @@
 body {
+    user-select: none;
     font :14px  arial;
     background : #36A;
-}
-
-h2 {
-    color : white;
-}
-
-a {
-  color : #F93;
-}
-
-.mute {
-    cursor : pointer;
-    display: initial;   
 }
 
 .containerSite {
@@ -29,14 +17,22 @@ a {
 }
 
 .containerVideo {
-    width: 29%;
-    margin-left: 1%;
-    overflow-y: auto;
-    max-height: 50%;
+    background-color: rgb(40, 83, 139);
+    width: 25%;
+    margin-left: 1.5%;
+    margin-right: 3.5%;
+    overflow: auto;
+    border-radius: 12px;
+}
+
+.containerVideo h3{
+    margin-left: 15px;
+    margin-bottom: 0px;
 }
 
 .listElement {
     height: 84px;
+    margin: 0px;
     display: flex;
     flex-wrap: wrap;
 }
@@ -53,7 +49,7 @@ a {
     align-items: center;
     justify-content: center;
     width: 10%;
-    font-size: 35px;
+    font-size: 12px;
     text-align: center;
     cursor: grab;
 }
@@ -63,7 +59,7 @@ a {
     align-items: center;
     justify-content: center;
     background-color: transparent;
-    color: white;
+    color: transparent;
     border: none;
     text-align: center;
     font-size: 15px;
@@ -73,13 +69,47 @@ a {
     text-decoration: none;
     cursor: pointer;
     border-radius: 50%;
-  }
+}
   
-  .listDeleteVideo:hover {
+.listDeleteVideo:hover {
     background-color: rgb(32, 66, 110);
     opacity: 1;
 }
 
 .active {
-    background-color: rgb(66, 136, 228);
+    background-color: rgb(58, 124, 210);
+}
+
+.containerSubVideo {
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.containerVideoTitle {
+    width: 70%;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.containerVideoInput {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    color: gray;
+    width: 70%;
+    height: 100px;
+    border-width: 2px;
+    border-style: dashed solid;
+    border-color: transparent;
+}
+
+#inputVideo {
+    cursor: pointer;
+    size: 30px;
+}
+
+#lastElement {
+    height: 10px;
 }
