@@ -8,10 +8,13 @@
     var titluVideo = document.getElementById("titluVideo");
     titluVideo.textContent = mediaSource[0].slice(mediaSource[0].lastIndexOf("/") + 1, mediaSource[0].lastIndexOf("."));
     
-    var dragHighlightElement = false;
-    var dropLast = true;
-    var dragOverIndex = -1;
-    var dragElementIndex = -1;
+    var preview = false;                                // variabila care specifica daca cursorul este deasupra barei de progresie
+    var previewMousePos = 0;                            // variabila care specifica pozitia cursorului de pe bara de progresie
+    var progressSize = 3;                               // variabila care specifica cat de mare este progress bar-ul
+    var dragHighlightElement = false;                   // variabila care stocheaza daca drag and dropul se efectueaza pe elementul evidentiat
+    var dropLast = true;                                // variabila care stocheaza daca elementul care a participat in actiunea de drag & drop a fost mutat pe ultima pozitie din lista de videouri
+    var dragOverIndex = -1;                             // variabila care specifica deasupra carui element din lista de videouri este actiunea de drag
+    var dragElementIndex = -1;                          // variabila care specifica ce element din lista de videouri participa in actiune drag & drop
     var onElement = true;
     var index = 0;                                      // variabila care specifica ce element din lista de videouri trebuie evidentiat
     var muted = true;                                   // variabila care retine daca sunetul este redat sau nu
@@ -20,6 +23,8 @@
 
     var canvas = document.getElementById("myCanvas");   // preia elementul canvas din pagina
     var ctx = canvas.getContext("2d");
+
+    var videoPreview = document.createElement('video');
     
     var video = document.createElement("video");        // creare element video
     video.src = mediaSource[0];                         // videoul va incepe sa se incarce
@@ -41,8 +46,8 @@
     }
 
     video.oncanplay = readyToPlayVideo; // set the event to the play function that
-                        // can be found below
-    function readyToPlayVideo(e) { // this is a referance to the video
+                                        // can be found below
+    function readyToPlayVideo(e) {      // this is a referance to the video
         // the video may not match the canvas size so find a scale to fit
         videoContainer.scale = Math.min(
                     canvas.width / this.videoWidth,
@@ -56,7 +61,7 @@
 
     function updateCanvas() {
 
-        if(videoContainer.video.duration == videoContainer.video.currentTime && autoPlay == true) {     // daca videoul s-a terminat, se trece la videoul urmator
+        if(videoContainer.video.ended == true && autoPlay == true) {     // daca videoul s-a terminat, se trece la videoul urmator
             
             let x = mediaSource.indexOf(videoContainer.video.src.slice(videoContainer.video.src.indexOf("Media")));
             if(x != undefined && x != null) {
@@ -89,30 +94,34 @@
             // now just draw the video the correct size
             ctx.drawImage(videoContainer.video, left, top, vidW * scale, vidH * scale);
 
-            if(videoContainer.video.paused) { // if not playing show the paused screen
+            if(preview == true) {
+                drawPreview(previewMousePos);
+            }
+
+            if(videoContainer.video.paused) {       // if not playing show the paused screen
                 drawCenterIcon();
-                drawPlayIcon();                 //deseneaza controlul de play
+                drawPlayIcon();                     //deseneaza controlul de play
             }else {
-                drawPauseIcon();                //deseneaza controlul de pause
+                drawPauseIcon();                    //deseneaza controlul de pause
             }
 
             if(muted != true) {
-                drawMuteIcon();                 //deseneaza controlul de mute
+                drawMuteIcon();                     //deseneaza controlul de mute
             }else {
-                drawUnmuteIcon();               //deseneaza controlul de unmute
+                drawUnmuteIcon();                   //deseneaza controlul de unmute
             }
 
             if(autoPlay == true) {
-                drawAutoPlayOn();               //deseneaza controlul de autoplay on
+                drawAutoPlayOn();                   //deseneaza controlul de autoplay on
             }else {
-                drawAutoPlayOff();              //deseneaza controlul de autoplay off
+                drawAutoPlayOff();                  //deseneaza controlul de autoplay off
             }
 
-            drawPreviousIcon();                 //deseneaza controlul de previous
-            drawNextIcon();                     //deseneaza controlul de next
-            drawProgressBar();                  //deseneaza bara de progres
+            drawPreviousIcon();                     //deseneaza controlul de previous
+            drawNextIcon();                         //deseneaza controlul de next
+            drawProgressBar(progressSize);          //deseneaza bara de progres
             let progress = canvas.width * (videoContainer.video.currentTime / videoContainer.video.duration);
-            drawProgress(progress);             //deseneaza progresia
+            drawProgress(progress, progressSize);   //deseneaza progresia
         }
         // all done for display
 
@@ -133,9 +142,9 @@
         {x1:60 * scaleW, x2:75 * scaleW, y1:(canvasH - 25) * scaleH, y2:(canvasH - 5) * scaleH},                            // play/pause
         {x1:100 * scaleW, x2:115 * scaleW, y1:(canvasH - 25) * scaleH, y2:(canvasH - 5) * scaleH},                          // next
         {x1:140 * scaleW, x2:160 * scaleW, y1:(canvasH - 25) * scaleH, y2:(canvasH - 5) * scaleH},                          // sound
-        {x1:0, x2:canvasW * scaleW, y1:(canvasH - 38) * scaleH, y2:(canvasH - 35) * scaleH},                                // progress bar
+        {x1:0, x2:canvasW * scaleW, y1:(canvasH - 50) * scaleH, y2:(canvasH - 35) * scaleH},                                // progress bar
         {x1:(canvasW - 50) * scaleW, x2:(canvasW - 13) * scaleW, y1: (canvasH - 27) * scaleH, y2:(canvasH - 7) * scaleH},   // autoplay
-        {x1:0, x2:canvasW * scaleW, y1:0, y2:(canvasH - 38) * scaleH}                                                       // orice de deasupra progress bar
+        {x1:0, x2:canvasW * scaleW, y1:0, y2:(canvasH - 50) * scaleH}                                                       // orice de deasupra progress bar
     ];
 
     function canvasClick(e) {
@@ -193,7 +202,9 @@
                     break;
                 }
                 case 4: {
-                    console.log("progress bar");
+                    var currTime = mousepos.x / scaleW * videoContainer.video.duration / canvas.width;
+                    console.log(currTime);
+                    videoContainer.video.currentTime = currTime;
                     break;
                 }
                 case 5: {
@@ -231,6 +242,7 @@
     var playlist = document.getElementById("playlist");
 
     playlist.addEventListener("dragover", (e) => {
+        document.body.style.cursor = "grabbing";
         e.preventDefault();
     });
 
@@ -250,6 +262,7 @@
         }
 
         index = mediaSource.indexOf(videoContainer.video.src.slice(videoContainer.video.src.indexOf("Media")));
+        document.body.style.cursor = "default";
     });
 
     playlist.style.height = canvas.getBoundingClientRect().height + "px";
@@ -261,7 +274,7 @@
         // golire elemente playlist si adaugare header
         playlist.innerHTML = "<h3>Playlist video</h3><br>";
 
-        for(let i = 0; i < mediaSource.length; i++) {       // pentru fiecare video se creaza un div cu videourile din playlist
+        for(let i = 0; i < mediaSource.length; i++) {           // pentru fiecare video se creaza un div cu videourile din playlist
             
             if(dragElementIndex != i) {
                 let vidName = mediaSource[i].slice(mediaSource[i].lastIndexOf("/") + 1, mediaSource[i].lastIndexOf("."))
@@ -341,6 +354,8 @@
                 if(index > dragElementIndex) {
                     index--;
                 }
+
+                document.body.style.cursor = "grabbing";
             });
 
             listaElemente[i].addEventListener("dragenter", (e) => {
@@ -376,9 +391,10 @@
                 }
 
                 index = mediaSource.indexOf(videoContainer.video.src.slice(videoContainer.video.src.indexOf("Media")));
+                document.body.style.cursor = "default";
+
             });
         }
-
         // creare event listener pentru apasarea click pe contextele video
         for(let i = 0; i < videoContexts.length; i++) {
             
@@ -396,8 +412,8 @@
                 
                 if(i == index) {
                     
-                    if(i < mediaSource.length) {        // daca videoul sters nu este ultimul din lista de videouri
-                        changeVideo(i);                 // schimba videoul cu videoul urmator
+                    if(i < mediaSource.length) {            // daca videoul sters nu este ultimul din lista de videouri
+                        changeVideo(i);                     // schimba videoul cu videoul urmator
                         
                         dragVideoContexts[i].innerHTML = "&#8883;";
                 
@@ -445,24 +461,24 @@
             {x1:60 * scaleW, x2:75 * scaleW, y1:(canvasH - 25) * scaleH, y2:(canvasH - 5) * scaleH},                            // play/pause
             {x1:100 * scaleW, x2:115 * scaleW, y1:(canvasH - 25) * scaleH, y2:(canvasH - 5) * scaleH},                          // next
             {x1:140 * scaleW, x2:160 * scaleW, y1:(canvasH - 25) * scaleH, y2:(canvasH - 5) * scaleH},                          // sound
-            {x1:0, x2:canvasW * scaleW, y1:(canvasH - 38) * scaleH, y2:(canvasH - 35) * scaleH},                                // progress bar
+            {x1:0, x2:canvasW * scaleW, y1:(canvasH - 50) * scaleH, y2:(canvasH - 35) * scaleH},                                // progress bar
             {x1:(canvasW - 50) * scaleW, x2:(canvasW - 13) * scaleW, y1: (canvasH - 27) * scaleH, y2:(canvasH - 7) * scaleH},   // autoplay
-            {x1:0, x2:canvasW * scaleW, y1:0, y2:(canvasH - 38) * scaleH}                                                       // orice de deasupra progress bar
+            {x1:0, x2:canvasW * scaleW, y1:0, y2:(canvasH - 50) * scaleH}                                                       // orice de deasupra progress bar
         ];
     });
 
     // controalele desenate peste canvas
     function drawCenterIcon() {
        
-        ctx.fillStyle = "black";  // darken display
+        ctx.fillStyle = "black";                                // darken display
         ctx.globalAlpha = 0.5;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#DDD"; // colour of play icon
-        ctx.globalAlpha = 0.75; // partly transparent
+        ctx.fillStyle = "#DDD";                                 // colour of play icon
+        ctx.globalAlpha = 0.75;                                 // partly transparent
     
-        ctx.beginPath(); // create the path for the icon
-        var size = (canvas.height / 2) * 0.25;  // the size of the icon
-        ctx.moveTo(canvas.width/2 + size, canvas.height / 2); // start at the pointy end
+        ctx.beginPath();                                        // create the path for the icon
+        var size = (canvas.height / 2) * 0.25;                  // the size of the icon
+        ctx.moveTo(canvas.width/2 + size, canvas.height / 2);   // start at the pointy end
         ctx.lineTo(canvas.width/2 - size/2, canvas.height / 2 + size);
         ctx.lineTo(canvas.width/2 - size/2, canvas.height / 2 - size);
         ctx.closePath();
@@ -564,12 +580,11 @@
         ctx.fill();
     }
     
-    function drawProgressBar() {
+    function drawProgressBar(size) {
         
         ctx.fillStyle = "#DDD";
         ctx.globalAlpha = 0.75;
-        // (0, canvas.height - 35) -> (canvas.width, canvas.height - 38)
-        var size = 3;
+        // (0, canvas.height - 35) -> (canvas.width, canvas.height - 50)
         var marginBottom = 35;
     
         ctx.beginPath();
@@ -581,12 +596,11 @@
         ctx.fill();
     }
 
-    function drawProgress(x) {
+    function drawProgress(x, size) {
         
         ctx.fillStyle = "#F00";
         ctx.globalAlpha = 0.75;
-        // (0, canvas.height - 35) -> (x, canvas.height - 38)
-        var size = 3;
+        // (0, canvas.height - 35) -> (x, canvas.height - 50)
         var marginBottom = 35;
     
         ctx.beginPath();
@@ -602,7 +616,7 @@
         
         var mute = document.createElement("img");
         mute.src = "./Media/Mute.png";
-        size = 20;
+        var size = 20;
         marginBottom = 10;
         marginLeft = 140;
         ctx.drawImage(mute, marginLeft, canvas.height - marginBottom / 2 - size, size, size);
@@ -612,7 +626,7 @@
         
         var unmute = document.createElement("img");
         unmute.src = "./Media/Unmute.png";
-        size = 20;
+        var size = 20;
         marginBottom = 10;
         marginLeft = 140;
         ctx.drawImage(unmute, marginLeft, canvas.height - marginBottom / 2 - size, size, size);
@@ -622,7 +636,7 @@
         
         var autoPlay = document.createElement("img");
         autoPlay.src = "./Media/switch-on.png";
-        size = 20;
+        var size = 20;
         marginBottom = 10;
         marginRight = 50;
         ctx.drawImage(autoPlay, canvas.width - marginRight, canvas.height - marginBottom / 2 - 1.6 * size, 1.85 * size, 2 * size);
@@ -632,7 +646,7 @@
         
         var autoPlay = document.createElement("img");
         autoPlay.src = "./Media/switch-off.png";
-        size = 20;
+        var size = 20;
         marginBottom = 10;
         marginRight = 50;
         ctx.drawImage(autoPlay, canvas.width - marginRight, canvas.height - marginBottom / 2 - 1.6 * size, 1.85 * size, 2 * size);
@@ -711,7 +725,50 @@
         }
     });
 
-    var file = new java.io.File("E:\\YourNewFolder");
-    var path = file.mkdir();
+    function drawPreview(x) {
+        videoPreview.src = mediaSource[index];
+        videoPreview.currentTime = x / scaleW * videoContainer.video.duration / canvas.width;
+    }
+
+    videoPreview.addEventListener("seeking", () => {
+        var width = canvasW / 8;
+        var height = canvasH / 8;
+        
+        var left = previewMousePos - width / 2;
+        var top = canvasH - 50 - height;
+
+        ctx.drawImage(videoPreview, left, top , width, height);
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+        var ctrl = -1;
+        var mousepos = {x:e.clientX - canvasX, y:e.clientY - canvasY};
+
+        for(let i = 0; i < pozControale.length - 1; i++) {
+            if(pozControale[i].x1 <= mousepos.x && mousepos.x <= pozControale[i].x2 &&
+                pozControale[i].y1 <= mousepos.y && mousepos.y <= pozControale[i].y2) {
+
+                ctrl = i;
+            }
+        }
+        if(ctrl != -1) {
+            canvas.style.cursor = "pointer";
+
+            if(ctrl == 4) {
+                progressSize = 5;
+                preview = true;
+                previewMousePos = mousepos.x;
+            }
+            else {
+                progressSize = 3;
+                preview = false;
+            }
+        }
+        else {
+            canvas.style.cursor = "default";
+            progressSize = 3;
+            preview = false;
+        }
+    })
 
     desenarePlaylist(); // desenare lista de videouri vizualizabile
