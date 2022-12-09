@@ -1,5 +1,6 @@
     // lista in care se plaseaza videurile care pot fi vazute de utilizator in pagina
     var mediaSource = [
+        "Media/DanDiaconescu.mp4",
         "Media/DoomerMotivation.mp4",
         "Media/OldCartoons.mp4",
         "Media/SigmaMale.mp4",
@@ -61,19 +62,19 @@
 
     function updateCanvas() {
 
-        if(videoContainer.video.ended == true && autoPlay == true) {     // daca videoul s-a terminat, se trece la videoul urmator
+        if(videoContainer.video.ended == true && autoPlay == true) {    // daca videoul s-a terminat si butonul de autoplay este on, se trece la videoul urmator
             
+            preview = false;
             let x = mediaSource.indexOf(videoContainer.video.src.slice(videoContainer.video.src.indexOf("Media")));
-            if(x != undefined && x != null) {
+            console.log(x);
+            if(x != undefined && x != null && x != -1) {
                 if(x < mediaSource.length - 1) {
                     changeVideo(x + 1);
                     desenarePlaylist();
                 }
                 else {
-                    if(mediaSource.x != 1){
-                        changeVideo(0);
-                        desenarePlaylist();
-                    }
+                    changeVideo(0);
+                    desenarePlaylist();
                 }
             }
         }
@@ -95,7 +96,8 @@
             ctx.drawImage(videoContainer.video, left, top, vidW * scale, vidH * scale);
 
             if(preview == true) {
-                drawPreview(previewMousePos);
+                console.log(preview);
+                drawPreview();
             }
 
             if(videoContainer.video.paused) {       // if not playing show the paused screen
@@ -725,19 +727,18 @@
         }
     });
 
-    function drawPreview(x) {
-        videoPreview.src = mediaSource[index];
-        videoPreview.currentTime = x / scaleW * videoContainer.video.duration / canvas.width;
-    }
-
-    videoPreview.addEventListener("seeking", () => {
+    function drawPreview() {
         var width = canvasW / 8;
         var height = canvasH / 8;
         
         var left = previewMousePos - width / 2;
         var top = canvasH - 50 - height;
 
-        ctx.drawImage(videoPreview, left, top , width, height);
+        ctx.drawImage(videoPreview, left / scaleW, top , width, height);
+    }
+
+    videoPreview.addEventListener("seeked", () => {
+        preview = true;
     });
 
     canvas.addEventListener("mousemove", (e) => {
@@ -755,9 +756,12 @@
             canvas.style.cursor = "pointer";
 
             if(ctrl == 4) {
+                
                 progressSize = 5;
-                preview = true;
                 previewMousePos = mousepos.x;
+                videoPreview.src = mediaSource[index];
+                videoPreview.currentTime = mousepos.x / scaleW * videoContainer.video.duration / canvas.width;
+
             }
             else {
                 progressSize = 3;
