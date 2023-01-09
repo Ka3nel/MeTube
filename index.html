@@ -12,7 +12,11 @@
         <div class="containerSubVideo">
             <h1 id="titluVideo" class="containerVideoTitle"></h1>
             <label>Upload or drag video</label>
-            <input type="file" id="inputVideo" name="input" accept="video/mp4" multiple>
+            <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none;"></iframe>
+            <form action="/uploadfile" enctype="multipart/form-data" method="POST" target="hiddenFrame">
+                <input id="file" type="file" name="myFile" />
+                <input id="submit" type="submit" value="Upload a file" />
+            </form>
             <div id="dropbox" class="containerVideoInput">
             </div>
         </div>
